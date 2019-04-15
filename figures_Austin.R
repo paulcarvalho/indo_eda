@@ -21,8 +21,9 @@ library(RColorBrewer)
 library(plotrix)
 
 # IMPORT DATA --------------------------------------------------------------------------------------------------------------------
-# Fish
+# fish
 all_fish_df <- read_excel("INDO DATA/fish/MASTER_fish_data.xlsx", sheet=1, col_names=TRUE)
+# benthic
 all_benthic_df <- read_excel("INDO DATA/benthic/MASTER_benthic_data.xlsx", sheet=1, col_names=TRUE)
 
 
@@ -56,7 +57,7 @@ all_fish_df$functional_group[which(all_fish_df$family == "Lethrinidae" |
                                    all_fish_df$family == "LETHRINIDAE")] <- "Omnivore"
 all_fish_df$functional_group[which(all_fish_df$family == "Haemulidae" |
                                    all_fish_df$family == "HAEMULIDAE")] <- "Omnivore"
-# remove some families due to inflating the total biomass
+# remove some families due to over inflating the total biomass
 all_fish_df <- all_fish_df[-(which(all_fish_df$family == "Carangidae" | all_fish_df$family == "CARANGIDAE")),]
 all_fish_df <- all_fish_df[-(which(all_fish_df$family == "Pomacentridae" | all_fish_df$family == "POMACENTRIDAE")),]
 all_fish_df <- all_fish_df[-(which(all_fish_df$family == "Caesionidae" | all_fish_df$family == "CAESIONIDAE")),]
@@ -264,13 +265,24 @@ p2 <- ggplot(all_df, aes(x=reorder(site_name,-biomass_kg_ha), y=biomass_kg_ha, f
 p2
 
 # Macroalgae as a function of herbivore biomass ====
+lm_eqn <- function(df){
+  m <- lm(ma_herb_df$macroalgae~ma_herb_df$biomass_kg_ha)
+  eq <- substitute(italic(MA) == a + b %*% italic(B)*"\n"~~italic(R)^2~"="~r2, 
+                   list(a = format(coef(m)[1], digits = 2),
+                        b = format(coef(m)[2], digits = 2),
+                        r2 = format(summary(m)$r.squared, digits = 3)))
+  as.character(as.expression(eq))
+}
+
 p3 <- ggplot(data=ma_herb_df, aes(x=biomass_kg_ha, y=macroalgae)) +
   geom_point() +
   geom_smooth(method="lm") +
   labs(x="Herbivore Biomass (kg/ha)", y="Macroalgae (% cover)") +
-  theme_classic()
+  theme_classic() +
+  geom_text(x=1000,y=20, label=lm_eqn(df),parse=TRUE)
 p3
-
+# use ggsave to keep high resolution for geom_text
+ggsave(p3,file="algae_herbivore.png")
 
 
 
