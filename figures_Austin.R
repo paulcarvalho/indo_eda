@@ -267,7 +267,7 @@ p2
 # Macroalgae as a function of herbivore biomass ====
 lm_eqn <- function(df){
   m <- lm(ma_herb_df$macroalgae~ma_herb_df$biomass_kg_ha)
-  eq <- substitute(italic(MA) == a + b %*% italic(B)*"\n"~~italic(R)^2~"="~r2, 
+  eq <- substitute(italic(MA) == a + b %*% italic(B)*"; "~~italic(R)^2~"="~r2, 
                    list(a = format(coef(m)[1], digits = 2),
                         b = format(coef(m)[2], digits = 2),
                         r2 = format(summary(m)$r.squared, digits = 3)))
