@@ -20,6 +20,9 @@ library(ggplot2)
 library(RColorBrewer)
 library(plotrix)
 
+# FUNCTIONS --------------------------------------------------------------------------------------------------------- 
+source("~/github/indo_eda/jitterbox.R")
+
 # IMPORT DATA --------------------------------------------------------------------------------------------------------------------
 # fish
 all_fish_df <- read_excel("INDO DATA/fish/MASTER_fish_data.xlsx", sheet=1, col_names=TRUE)
@@ -38,6 +41,8 @@ site_names_df$site_ID <- gsub("subs","fish",site_names_df$site_ID)
 all_fish_df <- join(all_fish_df, site_names_df, by="site_ID")
 # merge management
 names(management_df) <- c("site_name","management")
+management_df$site_name[which(management_df$site_name=="Yansawai")] <- "Yensawai"
+management_df$site_name[which(management_df$site_name=="Ruvas Island")] <- "Ruvas"
 all_fish_df <- join(all_fish_df, management_df, by="site_name")
 
 
@@ -217,6 +222,21 @@ names(biomass_tran_mngmt)[6] <- "biomass_kg"
 biomass_site_mngmt <- ddply(biomass_tran_mngmt, .(site_name, management, region), function(df)c(mean(df$biomass_kg)))
 names(biomass_site_mngmt)[4] <- "biomass_kg"
 biomass_site_mngmt$biomass_kg_ha <- biomass_site_mngmt$biomass_kg*40
+# remove NA from df
+biomass_site_mngmt <- biomass_site_mngmt[-which(is.na(biomass_site_mngmt$site_name)),]
+# remove Sombano
+biomass_site_mngmt <- biomass_site_mngmt[-which(biomass_site_mngmt$site_name=="Sombano"),]
+
+# ANOVA
+aov_management <- aov(biomass_kg_ha~management, data=biomass_site_mngmt)
+summary(aov_management)
+TukeyHSD(aov_management)
+
+# additive fixed effect model
+aov_fixed_effect <- aov(biomass_kg_ha ~ management + region, data=biomass_site_mngmt)
+summary(aov_fixed_effect)
+
+# interaction model
 
 # PLOTS --------------------------------------------------------------------------------------------------------------------------
 # Biomass by site and functional groups - faceted by region ====
@@ -302,7 +322,17 @@ p3
 ggsave(p3,file="algae_herbivore.png")
 
 
+# Biomass in relaion management/level of fishing ====
+biomass_site_mngmt$management <- as.factor(biomass_site_mngmt$management)
+names_x <- c("Fished","Lightly Fished", "No-Take Zone")
+p4 <- ggplot(data=biomass_site_mngmt, aes(x=reorder(management,-biomass_kg_ha), y=biomass_kg_ha))+
+  geom_boxplot() +
+  xlab("") + ylab("Biomass (kg/ha)") +
+  theme_classic()
+p4
 
+# gg_jitterbox(data_in=biomass_site_mngmt, factor_col=management, numeric_col=biomass_kg_ha, offset=2, names_x=names_x,
+#             label_x="", label_y="Biomass (kg/ha)")
 
 
 
