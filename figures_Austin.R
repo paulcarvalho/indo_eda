@@ -25,14 +25,21 @@ library(plotrix)
 all_fish_df <- read_excel("INDO DATA/fish/MASTER_fish_data.xlsx", sheet=1, col_names=TRUE)
 # benthic
 all_benthic_df <- read_excel("INDO DATA/benthic/MASTER_benthic_data.xlsx", sheet=1, col_names=TRUE)
+# managemnt
+management_df <- read_excel("INDO DATA/site_key_info.xlsx", sheet=1, col_names=TRUE)
 
 
-# SITE_NAMES ---------------------------------------------------------------------------------------------------------------------
+# SITE NAMES AND MANAGEMENT ------------------------------------------------------------------------------------------------------
+# merge site names
 site_names_df <- data_frame(site_ID = all_benthic_df$site_ID,
                             site_name = all_benthic_df$site_name)
 site_names_df <- unique(site_names_df)
 site_names_df$site_ID <- gsub("subs","fish",site_names_df$site_ID)
 all_fish_df <- join(all_fish_df, site_names_df, by="site_ID")
+# merge management
+names(management_df) <- c("site_name","management")
+all_fish_df <- join(all_fish_df, management_df, by="site_name")
+
 
 # FUNCTIONAL GROUPS --------------------------------------------------------------------------------------------------------------
 all_fish_df$functional_group[which(all_fish_df$functional_group == "Obligate and facultative coral feeder")] <- "Corallivore"
@@ -200,6 +207,16 @@ names(mean_ma_site)[3] <- "macroalgae"
 # join dataframes
 ma_herb_df <- join(mean_herb_biomass,mean_ma_site,by="site_name")
 ma_herb_df <- ma_herb_df[,-7] 
+
+
+# BIOMASS ~ MANAGEMENT -----------------------------------------------------------------------------------------------------------
+# sum biomass for all transects
+biomass_tran_mngmt <- ddply(all_fish_df, .(transect_ID, management, site_ID, site_name, region), function(df)c(sum(df$biomass_kg, na.rm=TRUE)))
+names(biomass_tran_mngmt)[6] <- "biomass_kg"
+# mean biomass per site
+biomass_site_mngmt <- ddply(biomass_tran_mngmt, .(site_name, management, region), function(df)c(mean(df$biomass_kg)))
+names(biomass_site_mngmt)[4] <- "biomass_kg"
+biomass_site_mngmt$biomass_kg_ha <- biomass_site_mngmt$biomass_kg*40
 
 # PLOTS --------------------------------------------------------------------------------------------------------------------------
 # Biomass by site and functional groups - faceted by region ====
