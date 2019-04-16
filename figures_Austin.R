@@ -281,7 +281,7 @@ p3 <- ggplot(data=ma_herb_df, aes(x=biomass_kg_ha, y=macroalgae)) +
   theme_classic() +
   geom_text(x=1000,y=20, label=lm_eqn(df),parse=TRUE)
 p3
-# use ggsave to keep high resolution for geom_text
+# use ggsave to maintain high resolution for geom_text
 ggsave(p3,file="algae_herbivore.png")
 
 
