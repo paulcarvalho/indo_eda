@@ -19,6 +19,7 @@ library(xlsx)
 library(ggplot2)
 library(RColorBrewer)
 library(plotrix)
+library(nlme)
 
 # FUNCTIONS --------------------------------------------------------------------------------------------------------- 
 source("~/github/indo_eda/jitterbox.R")
@@ -237,6 +238,12 @@ aov_fixed_effect <- aov(biomass_kg_ha ~ management + region, data=biomass_site_m
 summary(aov_fixed_effect)
 
 # interaction model
+# mixed effect with value; randomize one factor and that is days since or weights in gls
+model1 <- lme(biomass_kg_ha ~ management * region,
+              weight = varIdent(form=~1 | management),
+              random = ~ 1 | region,
+              data=biomass_site_mngmt)
+summary(model1)
 
 # PLOTS --------------------------------------------------------------------------------------------------------------------------
 # Biomass by site and functional groups - faceted by region ====
